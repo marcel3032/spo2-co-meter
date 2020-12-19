@@ -6,12 +6,11 @@ float avg_ago(int index);
 
 //constants and global variables
 int T=20, sensorPin=A0, IR_LED=10, RED_LED=13;
-const int max_measurments_size=50;
+const int max_measurments_size=50, min_inserted_finger=200;
 float RED_measurments[max_measurments_size], IR_measurments[max_measurments_size];
 int index=0, measurments_size=0;
 float sum_bpms=0, last_peak=0;
-const int max_bpms=5, avg_const=3;
-  int diff=0.4;
+const int max_bpms=5, avg_const=3, diff=0.3, min_diff_between_peak=200;
 int bpms=0, index_bpm=0;
 float bpm[max_bpms]={0,0,0,0,0};
 //end constants and global variables
@@ -33,12 +32,14 @@ void loop() {
   float s=millis();
   float IR = measure(IR_LED, sensorPin);
   float RED = measure(RED_LED, sensorPin);
+  if(IR<min_inserted_finger || RED<min_inserted_finger)
+    return;
   write_measurment(IR, RED);
 
-  Serial.print(IR);
+  /*Serial.print(IR);
   Serial.print(",");
   Serial.print(RED);
-  Serial.print(",");
+  Serial.print(",");*/
 
   
   if(measurments_size==max_measurments_size)
@@ -77,21 +78,17 @@ void write_measurment(int IR, int RED)
 
 bool is_peak()
 {
-  //return true;
-  /*float now =(RED_measurments[(index-0+max_measurments_size)%max_measurments_size]+RED_measurments[(index-1+max_measurments_size)%max_measurments_size]);
-  float prev=(RED_measurments[(index-1+max_measurments_size)%max_measurments_size]+RED_measurments[(index-2+max_measurments_size)%max_measurments_size]);
-  float last=(RED_measurments[(index-2+max_measurments_size)%max_measurments_size]+RED_measurments[(index-3+max_measurments_size)%max_measurments_size]);*/
   float now =avg_ago(index);
   float prev=avg_ago(index-1);
   float last=avg_ago(index-2);
-  Serial.print(now);
-  Serial.print(",");
+  //Serial.print(now);
+  //Serial.print(",");
   if(last<prev && last>now && last+diff<=prev && prev>=now+diff)
   {
-    Serial.print(760);
+    Serial.print(100);
     return true;
   }
-  Serial.print(725);
+  Serial.print(0);
   return false;
 }
 
@@ -108,18 +105,19 @@ float avg_ago(int index)
 
 float compute_BPM()
 {
-  if(is_peak())
+  float avg=0;
+  if(is_peak() && millis()- last_peak>min_diff_between_peak)
   {
     sum_bpms-=bpm[index_bpm];
     sum_bpms+=bpm[index_bpm]=millis()- last_peak;
     last_peak=millis();
     index_bpm++;
     index_bpm%=max_bpms;
-    for(int i=0;i<max_bpms;i++)
-    {
-      //Serial.print(bpm[i]);
-      //Serial.print(",");
-    }
-    //Serial.println();
   }
+  for(int i=0;i<max_bpms;i++)
+    {
+      avg+=bpm[i];
+    }
+  Serial.print(",");
+  Serial.print(60000/(avg/max_bpms));
 }
