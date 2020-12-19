@@ -1,8 +1,9 @@
 float measure(int light_port, int input_port);
-void write_measurment(int IR, int RED);
+void write_measurment(float IR, float RED);
 float compute_BPM();
 bool is_peak();
 float avg_ago(int index);
+void change_max_min_for_R(float RED, float IR);
 
 //constants and global variables
 int T=20, sensorPin=A0, IR_LED=10, RED_LED=13;
@@ -13,12 +14,13 @@ float sum_bpms=0, last_peak=0;
 const int max_bpms=5, avg_const=3, diff=0.3, min_diff_between_peak=200;
 int bpms=0, index_bpm=0;
 float bpm[max_bpms]={0,0,0,0,0};
+float REDmin=30000, REDmax=0, IRmin=30000, IRmax=0, R=0;
 //end constants and global variables
 
 void setup() {
   Serial.begin(9600);
   Serial.flush();
-  //Serial.println("IR, RED");
+  Serial.println("beat, R, SPO2, BPM");
   
   pinMode(sensorPin,INPUT);
   pinMode(RED_LED,OUTPUT);
@@ -36,10 +38,7 @@ void loop() {
     return;
   write_measurment(IR, RED);
 
-  /*Serial.print(IR);
-  Serial.print(",");
-  Serial.print(RED);
-  Serial.print(",");*/
+  change_max_min_for_R(RED, IR);
 
   
   if(measurments_size==max_measurments_size)
@@ -65,7 +64,7 @@ float measure(int light_port, int input_port)
   return res/n;
 }
 
-void write_measurment(int IR, int RED)
+void write_measurment(float IR, float RED)
 {
   RED_measurments[index]=RED;
   IR_measurments[index]=IR;
@@ -79,8 +78,8 @@ void write_measurment(int IR, int RED)
 bool is_peak()
 {
   float now =avg_ago(index);
-  float prev=avg_ago(index-1);
-  float last=avg_ago(index-2);
+  float prev=avg_ago(index-3);
+  float last=avg_ago(index-5);
   //Serial.print(now);
   //Serial.print(",");
   if(last<prev && last>now && last+diff<=prev && prev>=now+diff)
@@ -112,12 +111,30 @@ float compute_BPM()
     sum_bpms+=bpm[index_bpm]=millis()- last_peak;
     last_peak=millis();
     index_bpm++;
-    index_bpm%=max_bpms;
+    index_bpm%=max_bpms; 
+    R=(((REDmax-REDmin)*IRmin) / ((IRmax-IRmin)*REDmin));
+    REDmin=30000, REDmax=0, IRmin=30000, IRmax=0;
   }
   for(int i=0;i<max_bpms;i++)
     {
       avg+=bpm[i];
     }
   Serial.print(",");
+  Serial.print(R);
+  Serial.print(",");
+  Serial.print(-19*R+112);
+  Serial.print(",");
   Serial.print(60000/(avg/max_bpms));
+  /*Serial.print(",");
+  Serial.print((RED_measurments[index]-850)*5);
+  Serial.print(",");
+  Serial.print((IR_measurments[index]-850)*5);*/
+}
+
+void change_max_min_for_R(float RED, float IR)
+{
+  REDmax=max(RED, REDmax);
+  REDmin=min(RED, REDmin);
+  IRmax=max(IR, IRmax);
+  IRmin=min(IR, IRmin);
 }
