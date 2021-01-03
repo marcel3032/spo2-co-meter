@@ -28,21 +28,14 @@
     const int max_bpms=5, avg_const=4, diff=0.23, min_diff_between_peak=300;
     int bpms=0, index_bpm=0;
     float bpm[max_bpms];
+    float BPM_value=0;
   //R and SPO2
     float REDmin=30000, REDmax=0, IRmin=30000, IRmax=0, R=0, sum_Rs=0;
     float Rs[max_bpms];
     float k=-19, q=112;
+    float SPO2_value=0;
     const int border_ok_spo2=92, border_caution_spo2=88;
 //end constants and global variables
-
-float measure(int light_port, int input_port);
-void write_measurment(float IR, float RED);
-float compute_BPM();
-bool is_peak();
-float avg_ago(int index);
-void change_max_min_for_R(float RED, float IR);
-void lcd_backlight(int r, int g, int b);
-void lcd_backlight(enum farba);
 
 void setup() {
   Serial.begin(9600);
@@ -75,6 +68,7 @@ void setup() {
 }
 
 void loop() {
+  lcd_clear();
   current_color=neutral;
   float IR = measure(IR_LED, sensorPin);
   float RED = measure(RED_LED, sensorPin);
@@ -84,14 +78,44 @@ void loop() {
   
     change_max_min_for_R(RED, IR);
     if(measurments_size==max_measurments_size)
-      compute_BPM();
+      compute_blood_stuff();
   }
 
   MQ7_stuff();
 
   lcd_backlight(current_color);
+  lcd_write();
   
   Serial.println();
+}
+
+void lcd_write()
+{
+  lcd.setCursor(0,0);
+  lcd.print(BPM_value);
+  lcd.print("BPM");
+  lcd.setCursor(0,10);
+  lcd.print(SPO2_value);
+  lcd.print("SPO2");
+  lcd.setCursor(1,0);
+  lcd.print(CO_value);
+  lcd.print("ppm");
+  lcd.setCursor(1,10);
+  if(actual_status==heating)
+    lcd.print("H");
+  else
+    lcd.print("C");
+  lcd.print(":");
+  lcd.print((int)MQ7_change-millis());
+  lcd.print("s");
+}
+
+void lcd_clear()
+{
+  lcd.setCursor(0,0);
+  lcd.print("                 ");
+  lcd.setCursor(0,1);
+  lcd.print("                 ");
 }
 
 void MQ7_stuff()
@@ -171,10 +195,12 @@ float avg_ago(int index)
   return res/(2*avg_const);
 }
 
-float compute_BPM()
+void compute_blood_stuff()
 {
   if(is_peak() && millis()- last_peak>min_diff_between_peak)
   {
+    lcd.setCursor(0,7);
+    lcd.print("<3");
     Serial.print(100);
     sum_bpms-=bpm[index_bpm];
     sum_Rs-=Rs[index_bpm];
@@ -198,6 +224,9 @@ float compute_BPM()
   else
     current_color = caution;
 
+  SPO2_value=k*(sum_Rs/max_bpms)+q;
+  BPM_value = 60000/(sum_bpms/max_bpms);
+  
   Serial.print(",");
   Serial.print(sum_Rs/max_bpms);
   Serial.print(",");
