@@ -40,8 +40,8 @@
 void setup() {
   Serial.begin(9600);
   Serial.flush();
-  Serial.println("beat, R, SPO2, BPM");
-  
+  Serial.println("beat, R, SPO2, BPM"); 
+    
   pinMode(sensorPin,INPUT);
   pinMode(RED_LED,OUTPUT);
   pinMode(IR_LED,OUTPUT);
@@ -62,13 +62,17 @@ void setup() {
   actual_status= heating;
 
   lcd.begin(16, 2);
-
+  
+  lcd.setCursor(0,1); 
+  lcd.print("Starting");
+  delay(500);
+  lcd.clear();
+  
   for(int i=0;i<max_bpms;i++)
     bpm[i]=Rs[i]=0;
 }
 
 void loop() {
-  lcd_clear();
   current_color=neutral;
   float IR = measure(IR_LED, sensorPin);
   float RED = measure(RED_LED, sensorPin);
@@ -92,30 +96,50 @@ void loop() {
 void lcd_write()
 {
   lcd.setCursor(0,0);
+  lcd.print("   ");
+  if(BPM_value<100)
+    lcd.setCursor(1,0);
+  else
+    lcd.setCursor(0,0);
   lcd.print(BPM_value);
+  lcd.setCursor(3,0);
   lcd.print("BPM");
-  lcd.setCursor(0,10);
+  
+  lcd.setCursor(10,0);
+  lcd.print("   ");
+  if(SPO2_value<100)
+    lcd.setCursor(11,0);
+  else
+    lcd.setCursor(10,0);
   lcd.print(SPO2_value);
+  lcd.setCursor(12,0);
   lcd.print("SPO2");
-  lcd.setCursor(1,0);
+  
+  lcd.setCursor(0,1);
+  lcd.print("   ");
+    if(CO_value<100)
+    lcd.setCursor(1,1);
+  else
+    lcd.setCursor(0,1);
   lcd.print(CO_value);
+  lcd.setCursor(3,1);
   lcd.print("ppm");
-  lcd.setCursor(1,10);
+  
+  lcd.setCursor(11,1);
   if(actual_status==heating)
     lcd.print("H");
   else
     lcd.print("C");
+  
   lcd.print(":");
-  lcd.print((int)MQ7_change-millis());
+  
+  lcd.print((int)(MQ7_change-millis())/1000);
   lcd.print("s");
 }
 
 void lcd_clear()
 {
-  lcd.setCursor(0,0);
-  lcd.print("                 ");
-  lcd.setCursor(0,1);
-  lcd.print("                 ");
+  lcd.clear();
 }
 
 void MQ7_stuff()
