@@ -25,7 +25,8 @@
     int index=0, measurments_size=0;
   //BPM
     float sum_bpms=0, last_peak=0;
-    const int max_bpms=5, avg_const=4, diff=0.23, min_diff_between_peak=300;
+    const int max_bpms=5, avg_const=4, diff=0.21, min_diff_between_peak=400;
+    const int dif_prev=1, dif_prevprev=2, dif_last=4;
     int bpms=0, index_bpm=0;
     float bpm[max_bpms];
     float BPM_value=0;
@@ -75,7 +76,11 @@ void setup() {
 void loop() {
   current_color=neutral;
   float IR = measure(IR_LED, sensorPin);
+  Serial.print(",");
+  Serial.print(IR);
   float RED = measure(RED_LED, sensorPin);
+  Serial.print(",");
+  Serial.print(RED);
   if(IR>min_inserted_finger && RED>min_inserted_finger)
   {
     write_measurment(IR, RED);
@@ -137,11 +142,6 @@ void lcd_write()
   lcd.print("s");
 }
 
-void lcd_clear()
-{
-  lcd.clear();
-}
-
 void MQ7_stuff()
 {
   if(millis()>MQ7_change)
@@ -157,8 +157,8 @@ void MQ7_stuff()
       actual_status=heating;
       analogWrite(MQ7_control, 255);
       CO_value=analogRead(MQ7_output); //here need to be some formula to compute
-      Serial.print(",");
-      Serial.print(CO_value);
+      //Serial.print(",");
+      //Serial.print(CO_value);
       MQ7_change=millis()+6000;
     }    
   }
@@ -199,9 +199,9 @@ void write_measurment(float IR, float RED)
 bool is_peak()
 {
   float now =avg_ago(index);
-  float prev=avg_ago(index-1);
-  float prevprev=avg_ago(index-2);
-  float last=avg_ago(index-4);
+  float prev=avg_ago(index-dif_prev);
+  float prevprev=avg_ago(index-dif_prevprev);
+  float last=avg_ago(index-dif_last);
   
   if(last+diff<prevprev && prevprev+diff<prev && prev>now+diff)
     return true;
@@ -223,9 +223,10 @@ void compute_blood_stuff()
 {
   if(is_peak() && millis()- last_peak>min_diff_between_peak)
   {
-    lcd.setCursor(0,7);
+    lcd.setCursor(7,0);
     lcd.print("<3");
-    Serial.print(100);
+    Serial.print("\n");
+    Serial.print(960);
     sum_bpms-=bpm[index_bpm];
     sum_Rs-=Rs[index_bpm];
     
@@ -239,7 +240,15 @@ void compute_blood_stuff()
     index_bpm%=max_bpms; 
   }
   else
-    Serial.print(0);
+  {
+    if(millis()- last_peak>min_diff_between_peak/3*2)
+    {
+      lcd.setCursor(7,0);
+      lcd.print("  ");
+    }
+    Serial.print("\n");
+    Serial.print(920);
+  }
 
   if((k*(sum_Rs/max_bpms)+q)>=border_ok_spo2)
     current_color = ok;
@@ -251,12 +260,12 @@ void compute_blood_stuff()
   SPO2_value=k*(sum_Rs/max_bpms)+q;
   BPM_value = 60000/(sum_bpms/max_bpms);
   
-  Serial.print(",");
+  /*Serial.print(",");
   Serial.print(sum_Rs/max_bpms);
   Serial.print(",");
   Serial.print(k*(sum_Rs/max_bpms)+q);
   Serial.print(",");
-  Serial.print(60000/(sum_bpms/max_bpms));
+  Serial.print(60000/(sum_bpms/max_bpms));*/
 }
 
 void change_max_min_for_R(float RED, float IR)
