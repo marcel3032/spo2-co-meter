@@ -1,0 +1,17 @@
+Meno projektu: ???
+Autori: Sabína Samporová a Marcel Palaj
+Obsah projektu:
+
+Cieľom projektu je vytvoriť prístroj na meranie CO, ktorý dokáže upozorniť na neprípustné hodnoty CO vo vzduchu a percenta okysličenia krvi. Ako spôsob 
+využitia uvažujeme používanie v malom lietadle na signalizáciu unikajúceho CO pri poškodení výfuku.
+
+Na merianie používame 2 spôsoby:
+  1. Senzor MQ5, ktorý meria množstvo CO2 v krvi
+  2. Sústavu lediek, ktoré presvecujú prst na ruke a tým merajú množstvo kyslíka v krvi
+  
+Merania spracovávame pomocou Arduina a výsledky sa zobrazujú na led displeji. Tento svojim sfarbením signalizuje, či sú hodnoty vporiadku, 
+alebo hrozí nebezpečenstvo.
+
+Kód: 
+
+Foto a videodokumentácia:
