@@ -33,7 +33,7 @@
   //R and SPO2
     float REDmin=30000, REDmax=0, IRmin=30000, IRmax=0, R=0, sum_Rs=0;
     float Rs[max_bpms];
-    float k=-19, q=112;
+    float k=-22, q=105;
     float SPO2_value=0;
     const int border_ok_spo2=92, border_caution_spo2=88;
 //end constants and global variables
@@ -156,7 +156,7 @@ void MQ7_stuff()
     {
       actual_status=heating;
       analogWrite(MQ7_control, 255);
-      CO_value=analogRead(MQ7_output); //here need to be some formula to compute
+      CO_value=analogRead(MQ7_output);
       //Serial.print(",");
       //Serial.print(CO_value);
       MQ7_change=millis()+6000;

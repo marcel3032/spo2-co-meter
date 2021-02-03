@@ -1,16 +1,28 @@
-Meno projektu: ???
+Meno projektu: Pulzný oximeter a CO meter
 Autori: Sabína Samporová a Marcel Palaj
 Obsah projektu:
 
-Cieľom projektu je vytvoriť prístroj na meranie CO, ktorý dokáže upozorniť na neprípustné hodnoty CO vo vzduchu a percenta okysličenia krvi. Ako spôsob 
-využitia uvažujeme používanie v malom lietadle na signalizáciu unikajúceho CO pri poškodení výfuku.
+Cieľom projektu je vytvoriť prístroj s dvomi funkciami:
+- meranie CO, ktorý dokáže upozorniť na neprípustné hodnoty CO vo vzduchu
+- meranie okysličenia (saturácie) krvi
 
-Na merianie používame 2 spôsoby:
-  1. Senzor MQ5, ktorý meria množstvo CO2 v krvi
-  2. Sústavu lediek, ktoré presvecujú prst na ruke a tým merajú množstvo kyslíka v krvi
+Uvažované využitie je v ľahkom športovom lietadle na riešenie dvoch problémov. 
+Prvým problémom je, že kabína lietadla je vyhrievané tepelným výmenníkom od výfuku, a v prípade praskliny na výfukovom potrubí a zapnutom kúrení môže do priestoru kabíny vnikať oxid uhoľnatý [https://www.aopa.org/training-and-safety/air-safety-institute/accident-analysis/featured-accidents/epilot-asf-accident-reports-clear-the-air-the-deadly-effects-of-carbon-monoxide], bezfarebný plyn bez zápachu, ktorý sa viaže na hemoglobín. [https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1281520/]
+Druhým problémom je problematika letov vo veľkých výškach, kde vplyvom klesajúceho tlaku dochádza k nedokysličovaniu krvi [https://www.aeroweb.cz/clanky/1109-hypoxie-pri-letani-ve-velkych-vyskach].
+
+Meranie koncentrácie CO:
+
+Na meranie koncentrácie CO (jednotka je ppm - parts per million) používame senzor MQ7. Tento senzor má však problém s citlivosť na vodu [https://www.sparkfun.com/datasheets/Sensors/Biometric/MQ-7.pdf], kvôli čomu sa jeho pracovný cyklus skladá z dvoch fáz: Ohrievacej a chladiacej. Počas ohrievacej, ktorá trvá 60s dochádza k odparovaniu vody zo senzora. Nasleduje chladiaca fáza, ktorá trvá 90s a na jej konci dochádza k meraniu výstupnej hodnoty senzoru.
+
+Senzor je treba skalibrovať, čo sme ešte neurobili, keďže sme ešte nemali k dispozícii referenčný CO meter.
+
+Meranie saturácie krvi kyslíkom:
+
+Meranie saturácie krvi kyslíkom vykonávame neinvazívnou metódou, presvecovaním prstu červeným (660 nm) a infračerným (940nm) svetlom. Princíp činnosti je, že okysličený hemoglobín absorbuje viac infračerného svetla a málo červeného, kým pri neokysličenom je to presne naopak [https://cs.wikipedia.org/wiki/Pulsn%C3%AD_oxymetrie]. 
+
+Prístroj teda striedavo presvecuje prst červenou a infračervenou LED diódou, a zistením hodnoty tzv. R = (((max(RED)-min(RED))/min(RED)) / ((max(IR)-min(IR))/min(IR))) [https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4099100/] je možné na základe zjednodušeného vzťahu SPO2 = kR+q [http://www.thinkbiosolution.com/wp-content/uploads/2019/11/TBS_whitepaper_20190701_R_vs_spo2.pdf] stanoviť saturáciu krvi kyslíkom. Čo sa týka konštánt k, q, na zistenie ich presnej hodnoty je opäť treba použiť kalibráciu referečným oximetrom, ale väčšina zdrojov sa zhoduje približne na hodnote k=-22 a q=105.
   
-Merania spracovávame pomocou Arduina a výsledky sa zobrazujú na led displeji. Tento svojim sfarbením signalizuje, či sú hodnoty vporiadku, 
-alebo hrozí nebezpečenstvo.
+Merania spracovávame pomocou Arduina a výsledky zobrazujeme na LCD displeji 16x02. Tento displej má RGB podsvietenie a svojim sfarbením signalizuje, či sú hodnoty v poriadku.
 
 Kód: 
 
